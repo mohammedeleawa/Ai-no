@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة: أنا الأصل والذكاء الاصطناعي يساعدني فقط</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #2d3436;
+            overflow-x: hidden;
+        }
+        .game-container {
+            background: rgba(255, 255, 255, 0.97); padding: 25px 30px; border-radius: 25px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35); max-width: 680px; width: 100%; text-align: center;
+            border: 4px solid #00cec9; position: relative; animation: fadeInContainer 0.6s ease-out;
+        }
+        @keyframes fadeInContainer {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .sound-toggle {
+            position: absolute; top: 18px; left: 18px; background: #f1f2f6; border: 2px solid #dfe4ea;
+            border-radius: 50%; width: 42px; height: 42px; font-size: 1.2rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+        }
+        .sound-toggle:hover { background: #dfe4ea; transform: scale(1.08); }
+        .header-logo { display: flex; flex-direction: column; align-items: center; margin-bottom: 12px; }
+        .header-logo img {
+            width: 105px; height: 105px; object-fit: cover; border-radius: 50%;
+            border: 3px solid #0984e3; box-shadow: 0 4px 12px rgba(9, 132, 227, 0.25); background-color: #fff;
+        }
+        .department-title {
+            color: #0984e3; margin-top: 8px; background: linear-gradient(to right, #e3f2fd, #f3e5f5);
+            padding: 8px 22px; border-radius: 20px; display: inline-block; border: 1px solid #bbdefb;
+        }
+        .department-title h2 { margin: 0; font-size: 1.15rem; color: #1e272e; }
+        .department-title h3 { margin: 4px 0 0 0; font-size: 0.95rem; color: #0984e3; font-weight: 700; }
+
+        .hero-illustration {
+            margin: 10px auto 15px auto; max-width: 240px;
+            animation: floatHero 3.5s ease-in-out infinite;
+        }
+        @keyframes floatHero {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-7px); }
+        }
+
+        .student-info-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            background: linear-gradient(45deg, #0984e3, #6c5ce7); color: white;
+            padding: 10px 18px; border-radius: 15px; font-weight: bold; font-size: 1rem;
+            margin-bottom: 15px; gap: 10px; flex-wrap: wrap; box-shadow: 0 4px 12px rgba(108, 92, 231, 0.25);
+        }
+        .progress-wrapper {
+            width: 100%; background: #dfe6e9; height: 10px; border-radius: 10px;
+            overflow: hidden; margin-bottom: 18px;
+        }
+        .progress-bar {
+            height: 100%; width: 0%; background: linear-gradient(90deg, #00b894, #0984e3);
+            transition: width 0.5s ease;
+        }
+
+        .screen { display: none; }
+        .screen.active { display: block; animation: slideIn 0.4s ease-out; }
+        @keyframes slideIn {
+            from { opacity: 0; transform: scale(0.97); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .input-group { margin: 14px 0; text-align: right; }
+        .input-group label { display: block; font-weight: bold; margin-bottom: 6px; color: #2d3436; font-size: 1rem; }
+        .input-group input, .input-group select {
+            width: 100%; padding: 12px 14px; border: 2px solid #74b9ff; border-radius: 12px;
+            font-size: 1rem; outline: none; font-family: inherit; background: #fff; transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .input-group input:focus, .input-group select:focus {
+            border-color: #0984e3; box-shadow: 0 0 0 3px rgba(9, 132, 227, 0.15);
+        }
+        .input-hint { font-size: 0.85rem; color: #636e72; margin-top: 4px; display: block; }
+        .error-msg {
+            color: #d63031; font-size: 0.9rem; font-weight: bold; margin-top: 5px;
+            display: none; background: #ffeaa7; padding: 6px 10px; border-radius: 8px;
+        }
+
+        .scenario-visual {
+            width: 85px; height: 85px; margin: 0 auto 12px auto;
+            display: flex; align-items: center; justify-content: center;
+            background: #f0f7ff; border-radius: 50%; border: 3px solid #74b9ff;
+            box-shadow: 0 4px 10px rgba(116, 185, 255, 0.25);
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .scenario-box {
+            font-size: 1.2rem; margin-bottom: 18px; line-height: 1.65; background: #f4f9ff;
+            padding: 16px; border-radius: 15px; border-right: 6px solid #0984e3; font-weight: 600; color: #1e272e;
+        }
+        .choice-btn {
+            background: #ffffff; color: #2d3436; border: 2px solid #dfe6e9; padding: 13px 18px;
+            margin: 10px 0; border-radius: 12px; font-size: 1.05rem; font-weight: 600; cursor: pointer;
+            width: 100%; text-align: right; transition: all 0.25s ease; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            font-family: inherit; position: relative; overflow: hidden;
+        }
+        .choice-btn:hover {
+            background: #f1f8ff; border-color: #0984e3; transform: translateX(-4px);
+            box-shadow: 0 5px 12px rgba(9, 132, 227, 0.18);
+        }
+        .choice-btn.choice-correct {
+            background-color: #d4edda !important; border-color: #28a745 !important; color: #155724 !important;
+            animation: pulseCorrect 0.5s ease;
+        }
+        .choice-btn.choice-wrong {
+            background-color: #f8d7da !important; border-color: #dc3545 !important; color: #721c24 !important;
+            animation: shakeWrong 0.45s ease;
+        }
+        .choice-btn.choice-neutral {
+            background-color: #fff3cd !important; border-color: #ffc107 !important; color: #856404 !important;
+        }
+
+        @keyframes pulseCorrect {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+        @keyframes shakeWrong {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(6px); }
+            50% { transform: translateX(-6px); }
+            75% { transform: translateX(4px); }
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #00b894, #00cec9); color: white; border: none;
+            padding: 13px 20px; margin: 12px 0; border-radius: 12px; font-size: 1.05rem; font-weight: bold;
+            cursor: pointer; width: 100%; box-shadow: 0 4px 12px rgba(0, 184, 148, 0.3);
+            transition: all 0.2s ease; font-family: inherit;
+        }
+        .btn:hover { opacity: 0.93; transform: translateY(-2px); }
+        .btn-start { background: linear-gradient(45deg, #0984e3, #6c5ce7); font-size: 1.2rem; box-shadow: 0 6px 15px rgba(108, 92, 231, 0.35); }
+
+        .feedback {
+            margin-top: 15px; font-weight: bold; font-size: 1.08rem; min-height: 50px;
+            padding: 14px; border-radius: 12px; line-height: 1.5; animation: fadeInFeedback 0.35s ease;
+            position: relative; overflow: hidden;
+        }
+        @keyframes fadeInFeedback {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .feedback:empty { display: none; }
+        .feedback.correct { background-color: #d4edda; color: #155724; border: 2px solid #28a745; }
+        .feedback.neutral { background-color: #fff3cd; color: #856404; border: 2px solid #ffc107; }
+        .feedback.wrong { background-color: #f8d7da; color: #721c24; border: 2px solid #dc3545; }
+
+        .timer-line {
+            height: 4px; background: rgba(0,0,0,0.2); width: 100%; position: absolute; bottom: 0; right: 0;
+            animation: shrinkTimer 5s linear forwards;
+        }
+        @keyframes shrinkTimer {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+        .congratulations-card {
+            background: linear-gradient(135deg, #e0f7fa, #e8eaf6); padding: 25px;
+            border-radius: 20px; border: 3px dashed #0984e3; position: relative;
+        }
+        .saving-status { font-size: 0.95rem; color: #2d3436; font-weight: bold; margin-top: 10px; }
+
+        /* تأثيرات القصاصات الاحتفالية */
+        .confetti-piece {
+            position: fixed; width: 10px; height: 10px; top: -10px; z-index: 9999;
+            animation: fallConfetti linear forwards; pointer-events: none;
+        }
+        @keyframes fallConfetti {
+            to { transform: translateY(105vh) rotate(720deg); opacity: 0; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="game-container">
+        <button class="sound-toggle" id="sound-btn" onclick="toggleSound()" title="تشغيل / كتم الصوت">🔊</button>
+
+        <div class="header-logo">
+            <div style="font-weight: bold; font-size: 1.15rem; color: #2d3436; margin-bottom: 8px;">إدارة دار السلام التعليمية</div>
+            <img src="menberlogo.jpg" alt="شعار منبر الإسلام" onerror="this.onerror=null; this.src='menberlogo.png';">
+            <div class="department-title">
+                <h2>مدارس منبر الإسلام الخاصة</h2>
+                <h3>قسم الكمبيوتر وتكنولوجيا المعلومات</h3>
+            </div>
+        </div>
+
+        <div id="info-bar" class="student-info-bar" style="display: none;">
+            <div>👤 الطالب/ـة: <span id="display-name">-</span> | 🏫 الصف: <span id="display-class">-</span></div>
+            <div>🧠 الموقف: <span id="current-question">1</span> / 10 | 🌟 النقاط: <span id="score">0</span></div>
+        </div>
+        <div id="progress-container" class="progress-wrapper" style="display: none;">
+            <div id="progress-bar" class="progress-bar"></div>
+        </div>
+
+        <!-- شاشة البداية -->
+        <div id="start-screen" class="screen active">
+            <div class="hero-illustration">
+                <!-- رسم توضيحي SVG يعبر عن الطالب المبدع والذكاء الاصطناعي كأداة مساعدة -->
+                <svg viewBox="0 0 260 130" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="gradBrain" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#0984e3"/>
+                            <stop offset="100%" stop-color="#6c5ce7"/>
+                        </linearGradient>
+                        <linearGradient id="gradBot" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#00b894"/>
+                            <stop offset="100%" stop-color="#00cec9"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- الطالب (الأصل) -->
+                    <circle cx="75" cy="52" r="26" fill="#ffeaa7" stroke="#fdcb6e" stroke-width="3"/>
+                    <path d="M53 45 Q75 20 97 45" fill="#2d3436"/>
+                    <circle cx="67" cy="52" r="3" fill="#2d3436"/>
+                    <circle cx="83" cy="52" r="3" fill="#2d3436"/>
+                    <path d="M68 62 Q75 68 82 62" stroke="#d63031" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    <path d="M42 115 C42 85, 108 85, 108 115 Z" fill="url(#gradBrain)"/>
+                    <!-- تاج التميز -->
+                    <polygon points="62,25 68,14 75,23 82,14 88,25" fill="#fdcb6e" stroke="#e17055" stroke-width="1.5"/>
+                    <text x="75" y="127" font-size="12" font-weight="bold" fill="#0984e3" text-anchor="middle">أنا الأصل (العقل المبدع)</text>
+
+                    <!-- سهم التعاون -->
+                    <path d="M115 65 L145 65" stroke="#636e72" stroke-width="3" stroke-dasharray="4,3"/>
+                    <polygon points="115,65 122,60 122,70" fill="#636e72"/>
+
+                    <!-- الروبوت المساعد -->
+                    <rect x="158" y="34" width="46" height="38" rx="10" fill="url(#gradBot)"/>
+                    <line x1="181" y1="34" x2="181" y2="22" stroke="#00b894" stroke-width="3"/>
+                    <circle cx="181" cy="20" r="4" fill="#fdcb6e"/>
+                    <circle cx="171" cy="50" r="4" fill="#fff"/>
+                    <circle cx="191" cy="50" r="4" fill="#fff"/>
+                    <rect x="171" y="60" width="20" height="4" rx="2" fill="#fff"/>
+                    <rect x="163" y="76" width="36" height="34" rx="8" fill="#74b9ff"/>
+                    <text x="181" y="127" font-size="11" font-weight="bold" fill="#00b894" text-anchor="middle">AI أداة مساعدة فقط</text>
+                </svg>
+            </div>
+
+            <h1 style="color: #0984e3; font-size: 1.65rem; margin: 5px 0;">🧠 أنا الأصل والذكاء الاصطناعي يساعدني فقط 🤖</h1>
+            <p style="color: #636e72; font-size: 1rem; margin-bottom: 15px;">أهلاً بك يا بطل المستقبل! اكتشف كيف تستخدم الذكاء الاصطناعي بذكاء وأمانة دون أن تلغي عقلك أو تستبدل أصدقاءك الحقيقيين:</p>
+
+            <div class="input-group">
+                <label for="student-name">اسم الطالب / الطالبة (ثلاثي على الأقل بدون أرقام):</label>
+                <input type="text" id="student-name" placeholder="اكتب اسمك الثلاثي هنا (مثال: محمد أحمد علي)..." oninput="sanitizeNameInput(this)" onkeydown="if(event.key==='Enter') startGame()">
+                <span class="input-hint">* يُمنع كتابة الأرقام، ويجب كتابة الاسم الثلاثي كاملاً.</span>
+                <div id="name-error" class="error-msg"></div>
+            </div>
+
+            <div class="input-group">
+                <label for="student-class">الصف الدراسي:</label>
+                <select id="student-class">
+                    <option value="">-- اختر الصف الدراسي (من 1 إلى 9) --</option>
+                    <option value="1">1 (الصف الأول الابتدائي)</option>
+                    <option value="2">2 (الصف الثاني الابتدائي)</option>
+                    <option value="3">3 (الصف الثالث الابتدائي)</option>
+                    <option value="4">4 (الصف الرابع الابتدائي)</option>
+                    <option value="5">5 (الصف الخامس الابتدائي)</option>
+                    <option value="6">6 (الصف السادس الابتدائي)</option>
+                    <option value="7">7 (الصف الأول الإعدادي)</option>
+                    <option value="8">8 (الصف الثاني الإعدادي)</option>
+                    <option value="9">9 (الصف الثالث الإعدادي)</option>
+                </select>
+                <div id="class-error" class="error-msg"></div>
+            </div>
+
+            <button class="btn btn-start" onclick="startGame()">🚀 ابدأ التحدي الذكي الآن</button>
+        </div>
+
+        <!-- شاشة اللعب -->
+        <div id="game-screen" class="screen">
+            <div class="scenario-visual" id="scenario-icon">🧠</div>
+            <div class="scenario-box" id="scenario-text">جاري تحميل الموقف...</div>
+            <div id="choices-container"></div>
+            <div class="feedback" id="feedback-text"></div>
+        </div>
+
+        <!-- شاشة النهاية -->
+        <div id="end-screen" class="screen">
+            <div class="congratulations-card">
+                <h2 id="final-title" style="color: #0984e3; font-size: 1.85rem;">🎉 ألف مبروك يا بطل! 🎉</h2>
+                <div style="background: white; padding: 10px 18px; border-radius: 12px; font-weight: bold; margin: 12px 0; display: inline-block; border: 1px solid #74b9ff;">
+                    🏆 البطل/ـة: <span id="final-student-name"></span> (الصف: <span id="final-student-class"></span>)
+                </div>
+                <p id="final-message" style="font-size: 1.12rem; color: #2d3436; line-height: 1.6;"></p>
+                <div style="font-size: 1.7rem; color: #6c5ce7; font-weight: bold; margin: 15px 0;">
+                    درجة الوعي والذكاء: <span id="final-score">0</span> / 100
+                </div>
+                <div id="saving-status" class="saving-status">⏳ جاري تسجيل بياناتك وإجاباتك في كشف النتيجة...</div>
+                <button class="btn btn-start" onclick="restartGame()">🔄 إعادة التحدي</button>
+            </div>
+        </div>
+
+        <div style="margin-top: 20px; font-size: 0.95rem; font-weight: bold; color: #0984e3; border-top: 1px dashed #dfe6e9; padding-top: 10px;">
+            صنعه بكل الحب : محمد عليوة
+        </div>
+    </div>
+
+    <script>
+        // رابط Google Apps Script
+        const GOOGLE_SCRIPT_URL = "";
+
+        // نظام المؤثرات الصوتية المدمج (Web Audio API) بدون الحاجة لملفات خارجية
+        let soundEnabled = true;
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioCtx();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById("sound-btn").innerText = soundEnabled ? "🔊" : "🔇";
+        }
+
+        function playTone(freq, type, duration, delay = 0) {
+            if (!soundEnabled) return;
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + delay);
+            gain.gain.setValueAtTime(0.18, audioCtx.currentTime + delay);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(audioCtx.currentTime + delay);
+            osc.stop(audioCtx.currentTime + delay + duration);
+        }
+
+        function playSoundEffect(type) {
+            if (!soundEnabled) return;
+            if (type === "start") {
+                playTone(440, "sine", 0.15, 0);
+                playTone(554.37, "sine", 0.15, 0.12);
+                playTone(659.25, "sine", 0.25, 0.24);
+            } else if (type === "correct") {
+                playTone(523.25, "triangle", 0.15, 0);
+                playTone(659.25, "triangle", 0.15, 0.1);
+                playTone(783.99, "triangle", 0.3, 0.2);
+            } else if (type === "neutral") {
+                playTone(440, "sine", 0.2, 0);
+                playTone(392, "sine", 0.25, 0.18);
+            } else if (type === "wrong") {
+                playTone(250, "sawtooth", 0.2, 0);
+                playTone(190, "sawtooth", 0.35, 0.18);
+            } else if (type === "win") {
+                const notes = [523.25, 659.25, 783.99, 1046.5];
+                notes.forEach((n, i) => playTone(n, "triangle", 0.25, i * 0.14));
+            }
+        }
+
+        // 10 مواقف تربوية وتعليمية حول الاستخدام الأمثل للذكاء الاصطناعي
+        const scenarios = [
+            {
+                icon: `<svg width="52" height="52" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="#e3f2fd"/><text x="32" y="42" font-size="30" text-anchor="middle">📚</text></svg>`,
+                text: "1. طلب منك المعلم كتابة موضوع تعبير أو بحث قصير بأسلوبك، فماذا تفعل مع الذكاء الاصطناعي؟",
+                choices: [
+                    { text: "أطلب منه كتابة البحث كاملاً وأنسخه كما هو دون أن أقرأه.", score: -10, feedback: "خطأ! هذا غش واعتمادية تلغي عقلك وتفقدك مهارة الكتابة والتفكير.", type: "wrong" },
+                    { text: "أطلب منه أفكاراً وعناوين مقترحة، ثم أقرأ وأكتب الموضوع بأفكاري وأسلوبي أنا.", score: 10, feedback: "رائع! أنت الأصل والذكاء الاصطناعي مجرد أداة تساعدك على تنظيم أفكارك.", type: "correct" },
+                    { text: "أنسخ إجابته وأغير فقط كلمتين أو ثلاث كلمات في البداية.", score: 0, feedback: "تغيير كلمات قليلة لا يعني أنك تعلمت؛ اجعل إبداعك هو الأساس.", type: "neutral" }
+                ]
+            },
+            {
+                icon: `<svg width="52" height="52" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="#e8f5e9"/><text x="32" y="42" font-size="30" text-anchor="middle">🧮</text></svg>`,
+                text: "2. واجهتك مسألة رياضيات صعبة أثناء المذاكرة في المنزل ولم تفهم خطوات حلها.",
+                choices: [
+                    { text: "أصوّر المسألة للذكاء الاصطناعي وأطلب منه: 'اشرح لي خطوات الحل خطوة بخطوة لأفهمها'.", score: 10, feedback: "ممتاز! استخدام الذكاء الاصطناعي كمعلم خصوصي يشرح لك الفكرة هو الاستخدام الأمثل.", type: "correct" },
+                    { text: "آخذ الناتج النهائي فقط لأكتبه في الواجب دون معرفة كيف جاء الحل.", score: -10, feedback: "النتيجة بدون فهم ستجعلك عاجزاً في الامتحان الحقيقي!", type: "wrong" },
+                    { text: "أترك المسألة تماماً ولا أحاول فهمها.", score: 0, feedback: "المحاولة وطلب الشرح المبسط يجعلانك أقوى دراسياً.", type: "neutral" }
+                ]
+            },
+            {
+                icon: `<svg width="52" height="52" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="#fff3e0"/><text x="32" y="42" font-size="30" text-anchor="middle">🤝</text></svg>`,
+                text: "3. تشعر أحياناً بالملل أو الرغبة في الفضفضة واللعب، هل تتخذ من روبوت الذكاء الاصطناعي صديقاً حقيقياً بديلاً عن زملائك وعائلتك؟",
+                choices: [
+                    { text: "نعم، فهو يوافقني في كل شيء ولا يختلف معي أبداً مثل البشر.", score: -10, feedback: "احذر! الذكاء الاصطناعي برنامج بلا مشاعر حقيقية، والصداقة الحقيقية تُبنى مع البشر في الواقع.", type: "wrong" },
+                    { text: "أحياناً أتحدث معه طوال اليوم وأبتعد عن اللعب مع أصدقائي في المدرسة.", score: 0, feedback: "العزلة والارتباط بالآلة يضعفان مهاراتك الاجتماعية؛ شارك أصدقاءك وعائلتك.", type: "neutral" },
+                    { text: "لا، هو مجرد أداة تقنية مفيدة، أما الصداقة والمشاعر الحقيقية فمع عائلتي وأصدقائي.", score: 10, feedback: "وعي كبير! الإنسان يحتاج إلى دفء الأسرة والأصدقاء الحقيقيين، والآلة تبقى مجرد أداة.", type: "correct" }
+                ]
+            },
+            {
+                icon: `<svg width="52" height="52" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="#fce4ec"/><text x="32" y="42" font-size="30" text-anchor="middle">🔍</text></svg>`,
+                text: "4. أعطاك الذكاء الاصطناعي معلومة تاريخية أو علمية أثناء تحضيرك لدرس، كيف تتعامل معها؟",
+                choices: [
+                    { text: "أصدقها فوراً بنسبة 100% لأن الكمبيوتر لا يخطئ أبداً.", score: -10, feedback: "معلومة غير صحيحة! الذكاء الاصطناعي قد يخطئ أو يؤلف معلومات غير دقيقة (الهلوسة الرقمية).", type: "wrong" },
+                    { text: "أتحقق من صحة المعلومة من الكتاب المدرسي أو مصادر موثوقة أو أسأل معلمي.", score: 10, feedback: "أحسنت يا بطل! التفكير الناقد ومراجعة المصادر الموثوقة صفة الباحث الذكي.", type: "correct" },
+                    { text: "أنقلها دون اهتمام إن كانت صحيحة أم خاطئة.", score: 0, feedback: "الأمانة العلمية تتطلب التأكد من صحة أي معلومة قبل مشاركتها.", type: "neutral" }
+                ]
+            },
+            {
+                icon: `<svg width="52" height="52" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="#ede7f6"/><text x="32" y="42" font-size="30" text-anchor="middle">🔒</text></svg>`,
+                text: "5. أثناء استخدامك لتطبيق ذكاء اصطناعي، طلب منك إدخال عنوان منزلك بالتفصيل ورقم هاتف والدك وصورك الشخصية.",
+                choices: [
+                    { text: "أكتب له كل بياناتي وصوري لأنه روبوت لطيف ولن يخبر أحداً.", score: -10, feedback: "خطر كبير! لا تشارك بياناتك الشخصية أو صورك أبداً مع تطبيقات الذكاء الاصطناعي.", type: "wrong" },
+                    { text: "أرفض تماماً مشاركة أي بيانات شخصية أو صور خاصة للحفاظ على خصوصيتي وأماني.", score: 10, feedback: "تصرف رائع! حماية الخصوصية والبيانات الشخصية قاعدة ذهبية في الأمان الرقمي.", type: "correct" },
+                    { text: "أعطيه رقم الهاتف فقط ولا أعطيه العنوان.", score: 0, feedback: "أي معلومة شخصية خاصة بك أو بأسرتك يجب أن تبقى سرية تماماً.", type: "neutral" }
+                ]
+            },
+            {
+                icon: `<svg width="52" height="52" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="#e0f7fa"/><text x="32" y="42" font-size="30" text-anchor="middle">📝</text></svg>`,
+                text: "6. لديك اختبار إلكتروني أو تقييم في المنزل، وفكرت في فتح الذكاء الاصطناعي لينقل لك الإجابات.",
+                choices: [
+                    { text: "أعتمد على مذاكرتي ومجهودي الشخصي فقط، فالاختبار يقيس مستواي الحقيقي.", score: 10, feedback: "فخر لمدرستك! الأمانة الدراسية تجعلك فخوراً بنجاحك الحقيقي وتكشف لك نقاط قوتك.", type: "correct" },
+                    { text: "أستخدمه في الأسئلة الصعبة فقط حتى أحصل على الدرجة النهائية.", score: -10, feedback: "الغش في الامتحان يخدعك قبل أن يخدع المعلم، ويجعل مستواك الحقيقي ضعيفاً.", type: "wrong" },
+                    { text: "أجعل زميلي يغششه لي من هاتفه.", score: -10, feedback: "الغش مرفوض بكل أشكاله؛ اجتهد وستحقق النجاح بمجهودك.", type: "wrong" }
+                ]
+            },
+            {
+                icon: `<svg width="52" height="52" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="#fffde7"/><text x="32" y="42" font-size="30" text-anchor="middle">🇬🇧</text></svg>`,
+                text: "7. تريد تحسين مستواك في اللغة الإنجليزية أو تعلم مفردات جديدة، كيف تستفيد من الذكاء الاصطناعي؟",
+                choices: [
+                    { text: "أطلب منه أن يختبرني في الكلمات، ويصحح أخطائي الإملائية ويشرح لي السبب.", score: 10, feedback: "عبقري! هكذا تجعل التكنولوجيا مدرباً ذكياً يطور مهاراتك اللغوية.", type: "correct" },
+                    { text: "أجعله يترجم كل واجباتي دون أن أحفظ كلمة واحدة.", score: -10, feedback: "الترجمة الجاهزة بدون تعلم تمنع عقلك من اكتساب اللغة.", type: "wrong" },
+                    { text: "أقرأ الترجمة فقط ولا أحاول نطق الكلمات أو كتابتها.", score: 0, feedback: "الممارسة والتدريب هما سر إتقان أي لغة.", type: "neutral" }
+                ]
+            },
+            {
+                icon: `<svg width="52" height="52" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="#f3e5f5"/><text x="32" y="42" font-size="30" text-anchor="middle">🎨</text></svg>`,
+                text: "8. طلبت منك المدرسة تصميم ملصق أو عرض تقديمي عن الحفاظ على البيئة، ما الدور الصحيح لك وللذكاء الاصطناعي؟",
+                choices: [
+                    { text: "أفكر في الرسالة والأقسام بنفسي، وأستعين به لتوليد صور مساعدة أو تنسيق الأفكار.", score: 10, feedback: "مبدع! أنت القائد وصاحب الرؤية، والذكاء الاصطناعي ينفذ ما تخطط له.", type: "correct" },
+                    { text: "أترك له اختيار الموضوع والصور والنصوص بالكامل دون أي لمسة مني.", score: -10, feedback: "أين بصمتك وإبداعك؟ لا تجعل الآلة تفكر بدلاً منك.", type: "wrong" },
+                    { text: "أنسخ عرضاً جاهزاً من الإنترنت دون تعديل.", score: 0, feedback: "العمل المميز هو الذي يحمل بصمتك ومجهودك الشخصي.", type: "neutral" }
+                ]
+            },
+            {
+                icon: `<svg width="52" height="52" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="#ffebee"/><text x="32" y="42" font-size="30" text-anchor="middle">🛡️</text></svg>`,
+                text: "9. اقترح عليك أحد الزملاء استخدام الذكاء الاصطناعي لتركيب صورة مضحكة أو صوت مزيف لزميل آخر في الفصل.",
+                choices: [
+                    { text: "أوافق من باب المزاح والضحك مع الأصدقاء.", score: -10, feedback: "خطأ جسيم! تزييف الصور والأصوات إيذاء وتنمر رقمي يعاقب عليه القانون والأخلاق.", type: "wrong" },
+                    { text: "أرفض بشدة وأنصحه أن هذا إيذاء للآخرين واستخدام سيء للتكنولوجيا.", score: 10, feedback: "بطل حقيقي! الأخلاق الرقمية تحمي زملاءك وتجعلك قدوة حسنة.", type: "correct" },
+                    { text: "أصمت ولا أشارك ولكن أضحك على الصورة عندما يصنعها.", score: 0, feedback: "السكوت أو التشجيع بالضحك يشارك في إيذاء زميلك؛ كن إيجابياً وامنع الخطأ.", type: "neutral" }
+                ]
+            },
+            {
+                icon: `<svg width="52" height="52" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="#e8eaf6"/><text x="32" y="42" font-size="30" text-anchor="middle">👑</text></svg>`,
+                text: "10. ما القاعدة الذهبية لشعار لعبتنا: 'أنا الأصل والذكاء الاصطناعي يساعدني فقط'؟",
+                choices: [
+                    { text: "أن عقل الإنسان هو المبدع والمفكر، والذكاء الاصطناعي مجرد أداة مساعدة للتعلم والتطوير.", score: 10, feedback: "إجابة ذهبية! لقد أدركت جوهر التكنولوجيا الحديثة بوعي ومسؤولية! 🌟", type: "correct" },
+                    { text: "أن الذكاء الاصطناعي أذكى من الإنسان ويجب أن نعتمد عليه في كل شيء.", score: -10, feedback: "خطأ! الإنسان هو من ابتكر الذكاء الاصطناعي، وعقلك هو الأساس دائماً.", type: "wrong" },
+                    { text: "أن نستخدم الذكاء الاصطناعي في التسلية والدردشة طوال الوقت.", score: 0, feedback: "التوازن مهم؛ اجعل التكنولوجيا وسيلة للتعلم والإبداع لا لإضاعة الوقت.", type: "neutral" }
+                ]
+            }
+        ];
+
+        let currentScenarioIndex = 0;
+        let score = 0;
+        let studentName = "";
+        let studentClass = "";
+        let studentAnswers = [];
+
+        // منع كتابة الأرقام في خانة الاسم أثناء الكتابة
+        function sanitizeNameInput(input) {
+            const cleaned = input.value.replace(/[0-9٠-٩]/g, '');
+            if (input.value !== cleaned) {
+                input.value = cleaned;
+                showError("name-error", "⚠️ غير مسموح بكتابة الأرقام في خانة اسم الطالب!");
+            } else {
+                hideError("name-error");
+            }
+        }
+
+        function showError(elementId, message) {
+            const el = document.getElementById(elementId);
+            el.innerText = message;
+            el.style.display = "block";
+        }
+
+        function hideError(elementId) {
+            const el = document.getElementById(elementId);
+            el.style.display = "none";
+        }
+
+        function startGame() {
+            const nameInput = document.getElementById("student-name").value.trim().replace(/\s+/g, ' ');
+            const classInput = document.getElementById("student-class").value;
+
+            hideError("name-error");
+            hideError("class-error");
+
+            if (!nameInput) {
+                showError("name-error", "⚠️ فضلاً، اكتب اسم الطالب أولاً.");
+                return;
+            }
+
+            // التحقق من عدم وجود أرقام
+            if (/[0-9٠-٩]/.test(nameInput)) {
+                showError("name-error", "⚠️ اسم الطالب يجب أن يحتوي على حروف فقط بدون أرقام.");
+                return;
+            }
+
+            // التحقق من أن الاسم ثلاثي على الأقل (يرفض الاسم المفرد أو الثنائي)
+            const nameParts = nameInput.split(" ").filter(part => part.length > 0);
+            if (nameParts.length < 3) {
+                showError("name-error", "⚠️ غير مسموح بالاسم المفرد أو الثنائي! يرجى كتابة الاسم الثلاثي كاملاً.");
+                return;
+            }
+
+            // التحقق من اختيار الصف الدراسي من 1 إلى 9
+            if (!classInput || parseInt(classInput) < 1 || parseInt(classInput) > 9) {
+                showError("class-error", "⚠️ فضلاً، اختر الصف الدراسي من القائمة (من 1 إلى 9).");
+                return;
+            }
+
+            playSoundEffect("start");
+
+            studentName = nameInput;
+            studentClass = classInput;
+            studentAnswers = [];
+
+            document.getElementById("display-name").innerText = studentName;
+            document.getElementById("display-class").innerText = studentClass;
+
+            document.getElementById("start-screen").classList.remove("active");
+            document.getElementById("info-bar").style.display = "flex";
+            document.getElementById("progress-container").style.display = "block";
+            document.getElementById("game-screen").classList.add("active");
+
+            loadScenario();
+        }
+
+        function loadScenario() {
+            const feedbackText = document.getElementById("feedback-text");
+            feedbackText.innerHTML = "";
+            feedbackText.className = "feedback";
+
+            const progressPercent = (currentScenarioIndex / scenarios.length) * 100;
+            document.getElementById("progress-bar").style.width = progressPercent + "%";
+
+            if (currentScenarioIndex < scenarios.length) {
+                let current = scenarios[currentScenarioIndex];
+                document.getElementById("scenario-icon").innerHTML = current.icon;
+                document.getElementById("scenario-text").innerText = current.text;
+                document.getElementById("current-question").innerText = currentScenarioIndex + 1;
+
+                const choicesContainer = document.getElementById("choices-container");
+                choicesContainer.innerHTML = "";
+
+                current.choices.forEach(choice => {
+                    let btn = document.createElement("button");
+                    btn.className = "choice-btn";
+                    btn.innerText = choice.text;
+                    btn.onclick = () => selectChoice(choice, btn);
+                    choicesContainer.appendChild(btn);
+                });
+            } else {
+                document.getElementById("progress-bar").style.width = "100%";
+                showEndScreen();
+            }
+        }
+
+        function selectChoice(choice, selectedBtn) {
+            score += choice.score;
+            if (score < 0) score = 0;
+            document.getElementById("score").innerText = score;
+
+            playSoundEffect(choice.type);
+
+            studentAnswers.push({
+                questionNo: currentScenarioIndex + 1,
+                scenario: scenarios[currentScenarioIndex].text,
+                selectedChoice: choice.text,
+                questionScore: choice.score
+            });
+
+            const feedbackText = document.getElementById("feedback-text");
+            feedbackText.innerHTML = `${choice.feedback}<div class="timer-line"></div>`;
+            feedbackText.className = `feedback ${choice.type}`;
+
+            if (selectedBtn) {
+                selectedBtn.classList.add(`choice-${choice.type}`);
+            }
+
+            const buttons = document.querySelectorAll("#choices-container .choice-btn");
+            buttons.forEach(btn => btn.style.pointerEvents = "none");
+
+            currentScenarioIndex++;
+            // مضاعفة وقت ظهور التعليق من 2500 مللي ثانية إلى 5000 مللي ثانية (5 ثوانٍ)
+            setTimeout(() => {
+                loadScenario();
+            }, 5000);
+        }
+
+        function launchConfetti() {
+            const colors = ['#0984e3', '#00b894', '#fdcb6e', '#6c5ce7', '#e84393', '#00cec9'];
+            for (let i = 0; i < 65; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'confetti-piece';
+                piece.style.left = Math.random() * 100 + 'vw';
+                piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                piece.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                document.body.appendChild(piece);
+                setTimeout(() => piece.remove(), 4200);
+            }
+        }
+
+        function showEndScreen() {
+            document.getElementById("game-screen").classList.remove("active");
+            document.getElementById("end-screen").classList.add("active");
+
+            document.getElementById("final-student-name").innerText = studentName;
+            document.getElementById("final-student-class").innerText = studentClass;
+            document.getElementById("final-score").innerText = score;
+
+            const finalTitle = document.getElementById("final-title");
+            const finalMessage = document.getElementById("final-message");
+
+            if (score >= 80) {
+                finalTitle.innerText = "🎉 ألف مبروك يا قائد المستقبل! 🌟";
+                finalMessage.innerText = "أنت بالفعل الأصل وعقلك هو القائد! لقد أثبتّ وعياً رائعاً في توظيف الذكاء الاصطناعي للتعلم والإبداع دون غش أو اعتمادية، مع الحفاظ على صداقاتك الحقيقية.";
+                playSoundEffect("win");
+                launchConfetti();
+            } else if (score >= 50) {
+                finalTitle.innerText = "👏 أحسنت! خطوة جيدة نحو الوعي الذكي 💫";
+                finalMessage.innerText = "لديك بداية طيبة، وتذكر دائماً أن الذكاء الاصطناعي أداة مساعدة لفهم الدروس وليس بديلاً عن عقلك أو أصدقائك الحقيقيين.";
+                playSoundEffect("start");
+            } else {
+                finalTitle.innerText = "🌱 فرصة جديدة للتعلم والمحاولة! 💪";
+                finalMessage.innerText = "تذكر دائماً شعارنا: 'أنا الأصل والذكاء الاصطناعي يساعدني فقط'. لا تعتمد على الآلة في الغش ولا تستبدل بها أصدقاءك؛ أعد التحدي لتتقن الاستخدام الصحيح!";
+                playSoundEffect("neutral");
+            }
+
+            sendDataToGoogleSheets();
+        }
+
+        function sendDataToGoogleSheets() {
+            const statusDiv = document.getElementById("saving-status");
+            statusDiv.innerText = "⏳ جاري حفظ النتائج والإجابات أونلاين...";
+
+            const payload = {
+                studentName: studentName,
+                studentClass: studentClass,
+                finalScore: score,
+                answers: studentAnswers
+            };
+
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
+                statusDiv.innerText = "✅ تم حفظ نتيجتك وإجاباتك بنجاح في كشف المعلم!";
+                statusDiv.style.color = "#155724";
+            })
+            .catch(err => {
+                console.error(err);
+                statusDiv.innerText = "⚠️ تعذر حفظ البيانات تلقائياً، تأكد من الاتصال بالإنترنت.";
+                statusDiv.style.color = "#721c24";
+            });
+        }
+
+        function restartGame() {
+            currentScenarioIndex = 0;
+            score = 0;
+            studentAnswers = [];
+            document.getElementById("score").innerText = score;
+            document.getElementById("progress-bar").style.width = "0%";
+
+            document.getElementById("end-screen").classList.remove("active");
+            document.getElementById("start-screen").classList.add("active");
+            document.getElementById("info-bar").style.display = "none";
+            document.getElementById("progress-container").style.display = "none";
+
+            document.getElementById("student-name").value = "";
+            document.getElementById("student-class").value = "";
+            hideError("name-error");
+            hideError("class-error");
+        }
+    </script>
+
+</body>
+
+</html>
